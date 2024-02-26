@@ -1,20 +1,14 @@
-*.pyc
-*.npy
-data/*
-output/*
-*.jpg
-*.png
-*.dat
-*.pkl
-*.pth
-*.idea
 **/.DS_Store
+
 **/*.pt
 **/*.pth
+**/*.pkl
+**/*.dat
 **/*.pth.tar
+
 **/__pycache__/
 data
-
+.idea
 .vscode/
 
 flagged
