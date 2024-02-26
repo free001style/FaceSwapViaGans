@@ -8,3 +8,17 @@ output/*
 *.pkl
 *.pth
 *.idea
+**/.DS_Store
+**/*.pt
+**/*.pth
+**/*.pth.tar
+**/__pycache__/
+data
+
+.vscode/
+
+flagged
+
+!pretrained_ckpts/auxiliray/model.pth
+
+start.sh

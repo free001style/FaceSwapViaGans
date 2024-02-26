@@ -1,7 +1,7 @@
 from PIL import Image
 import torch
 import torchvision.transforms.functional as tv_f
-from face_recog_model import Backbone
+from src.metrics.face_recog_model import Backbone
 from sklearn.metrics.pairwise import cosine_similarity
 import dlib, cv2
 import os, argparse
