@@ -1,13 +1,13 @@
 import math
 import random
 
-
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from src.models.stylegan2.op import upfirdn2d, conv2d_gradfix
 from src.models.stylegan2.op.fused_act import FusedLeakyReLU, fused_leaky_relu
+from src.models.stylegan2.op.upfirdn2d import upfirdn2d
 
 
 class PixelNorm(nn.Module):

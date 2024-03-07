@@ -49,7 +49,7 @@ class TrainOptions:
         self.parser.add_argument('--board_interval', default=30 * 10 * 2, type=int,
                                  help='Interval for logging metrics to tensorboard')
         self.parser.add_argument('--val_interval', default=5000 * 2 * 2, type=int, help='Validation interval')
-        self.parser.add_argument('--save_interval', default=10000 * 5 * 2, type=int, help='Model checkpoint interval')
+        self.parser.add_argument('--save_interval', default=10000, type=int, help='Model checkpoint interval')
 
         # ================= Loss Function =====================
         self.parser.add_argument('--lpips_lambda', default=0.8, type=float, help='LPIPS loss multiplier factor')

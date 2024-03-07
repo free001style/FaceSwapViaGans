@@ -8,7 +8,6 @@ import os
 import matplotlib
 import matplotlib.pyplot as plt
 
-matplotlib.use('Agg')
 import torch.distributed as dist
 import math
 from collections import OrderedDict
@@ -22,6 +21,8 @@ from src.criteria.adverserial_loss import AdvDLoss, AdvGLoss, DR1Loss, GPathRegu
 from src.models.networks import Net3
 from src.models.stylegan2.model import Discriminator
 from src.utils import torch_utils
+
+matplotlib.use('Agg')
 
 ACCUM = 0.5 ** (32 / (100 * 1000))  # 0.9977843871238888
 
@@ -353,7 +354,7 @@ class Trainer:
 
                 # Logging related
                 if self.rank == 0 and (self.global_step % self.opts.image_interval == 0 or (
-                        self.global_step < 1000 and self.global_step % 25 == 0)):
+                        self.global_step < 1000 and self.global_step % 100 == 0)):
                     imgs = self.parse_images(onehot, img, recon1)
                     self.log_images('images/train/faces', imgs1_data=imgs, subscript=None)
 
@@ -487,6 +488,12 @@ class Trainer:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         fig.savefig(path)
         plt.close(fig)
+        if 'train' in name:
+            self.logger.add_figure(
+                f'train/{step:06d}.jpg', fig, self.global_step)
+        elif 'test' in name:
+            self.logger.add_figure(
+                f'test/{step:06d}.jpg', fig, self.global_step)
 
     def checkpoint_me(self, loss_dict, is_best):
         save_name = 'best_model.pt' if is_best else f'iteration_{self.global_step}.pt'

@@ -10,6 +10,9 @@ sys.path.append("..")
 
 from src.options.train_options import TrainOptions
 from src.training import Trainer
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 def main():

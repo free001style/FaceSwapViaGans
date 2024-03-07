@@ -94,3 +94,4 @@ class VGG16(BaseNet):
         self.n_channels_list = [64, 128, 256, 512, 512]
 
         self.set_requires_grad(False)
+
