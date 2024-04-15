@@ -8,7 +8,7 @@ from src.models.stylegan2.model import EqualLinear
 
 
 class LocalMLP(nn.Module):
-    """MLP module to map texture code to the latnet space of StyleGAN, i.e., W^{r+} space"""
+    """MLP module to map texture code to the latent space of StyleGAN, i.e., W^{r+} space"""
 
     def __init__(self, dim_component=512, dim_style=512, num_w_layers=18, latent_squeeze_ratio=1):
         super(LocalMLP, self).__init__()
@@ -36,14 +36,14 @@ class LocalMLP(nn.Module):
 
 
 class Net3(nn.Module):
-    """ Multi-scale Style Extracion + StyleGAN with mask-guided injection """
+    """ Multi-scale Style Extraction + StyleGAN with mask-guided injection """
 
     def __init__(self, opts, ):
         super(Net3, self).__init__()
         self.opts = opts
         assert self.opts.fsencoder_type in ["psp"]
 
-        self.encoder = FSEncoder_PSP(mode='ir_se', opts=self.opts)
+        self.encoder = FSEncoder_PSP(mode='ir_se')
         dim_s_code = 256 + 512 + 512
 
         self.split_layer_idx = 5

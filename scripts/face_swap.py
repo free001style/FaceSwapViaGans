@@ -1,13 +1,9 @@
 import os
 import copy
 import cv2
-from argparse import ArgumentParser
 from PIL import Image
 import torch
 import warnings
-
-warnings.filterwarnings("ignore")
-
 import numpy as np
 import torchvision.transforms as transforms
 from torch.nn import functional as F
@@ -27,6 +23,8 @@ from src.utils.multi_band_blending import blending
 from src.options.swap_options import SwapFacePipelineOptions
 from src.models.networks import Net3
 from src.datasets.dataset import TO_TENSOR, NORMALIZE, __celebAHQ_masks_to_faceParser_mask_detailed
+
+warnings.filterwarnings("ignore")
 
 
 def create_masks(mask, outer_dilation=0, operation='dilation'):
@@ -181,7 +179,7 @@ def faceSwapping_pipeline(source, target, opts, name, save_dir, target_mask=None
         only_target_crop (bool): only crop target image
     """
     # os.makedirs(save_dir, exist_ok=True)
-
+    # TODO добавить нормальное сохранение, а не то, что сейчас
     source_and_target_files = [source, target]
     source_and_target_files = [(os.path.basename(f).split('.')[0], f) for f in source_and_target_files]
 
@@ -425,4 +423,3 @@ if __name__ == "__main__":
         target_path = os.path.join(opts.target, target)
         faceSwapping_pipeline(source_path, target_path, opts, source, save_dir=opts.output_dir,
                               target_mask=target_mask_seg12, need_crop=False, verbose=opts.verbose)
-

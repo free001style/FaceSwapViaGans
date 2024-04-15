@@ -238,7 +238,7 @@ class CustomBackboneEncoderUsingLastLayerIntoWPlus(Module):
 
 # ================================================================
 class FSEncoder_PSP(Module):
-    def __init__(self, mode='ir_se', opts=None):
+    def __init__(self, mode='ir_se'):
         super(FSEncoder_PSP, self).__init__()
         assert mode in ['ir', 'ir_se'], 'mode should be ir or ir_se'
         blocks = [

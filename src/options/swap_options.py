@@ -40,7 +40,7 @@ class SwapFacePipelineOptions:
 
         self.parser.add_argument('--verbose', default=False, type=bool, help='Whether to show the intermediate results')
         self.parser.add_argument('--output_dir', type=str, default="./test",
-                                 help='Path to the target mask')
+                                 help='Path to the output directory')
 
     def parse(self):
         opts = self.parser.parse_args()

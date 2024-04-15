@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 import torch.distributed as dist
 import math
 from collections import OrderedDict
+import wandb
 
-from src.datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, FFHQDataset, \
-    FFHQ_MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED, FFHQ_MASK_CONVERT_TF_DETAILED
+from src.datasets.dataset import CelebAHQDataset, TO_TENSOR, NORMALIZE, FFHQDataset, MASK_CONVERT_TF_DETAILED, \
+    FFHQ_MASK_CONVERT_TF_DETAILED
 from src.criteria.id_loss import IDLoss
 from src.criteria.face_parsing.face_parsing_loss import FaceParsingLoss
 from src.criteria.lpips.lpips import LPIPS
@@ -21,6 +22,8 @@ from src.criteria.adverserial_loss import AdvDLoss, AdvGLoss, DR1Loss, GPathRegu
 from src.models.networks import Net3
 from src.models.stylegan2.model import Discriminator
 from src.utils import torch_utils
+
+KEY = "paste your wandb ape key"
 
 matplotlib.use('Agg')
 
@@ -87,7 +90,7 @@ class Trainer:
         # resume
         if self.opts.checkpoint_path is not None:
             ckpt_dict = torch.load(self.opts.checkpoint_path)
-            self.global_step = ckpt_dict["opts"]["max_steps"] + 1
+            self.global_step = ckpt_dict['current_step'] + 1
 
             if self.opts.dist_train:
                 self.net.module.latent_avg = ckpt_dict['latent_avg'].to(self.device)
@@ -190,6 +193,8 @@ class Trainer:
         os.makedirs(log_dir, exist_ok=True)
         if self.rank == 0:
             self.logger = SummaryWriter(logdir=log_dir)
+            wandb.login(key=KEY)
+            wandb.init()
 
         # Initialize checkpoint dir
         self.checkpoint_dir = os.path.join(opts.exp_dir, 'checkpoints')
@@ -455,6 +460,7 @@ class Trainer:
         for key, value in metrics_dict.items():
             self.logger.add_scalar(
                 f'{prefix}/{key}', value, self.global_step)
+            wandb.log({f'{prefix}/{key}': value}, step=self.global_step)
 
     def print_metrics(self, metrics_dict, prefix):
         print(f'Metrics for {prefix}, step {self.global_step}')
@@ -491,9 +497,11 @@ class Trainer:
         if 'train' in name:
             self.logger.add_figure(
                 f'train/{step:06d}.jpg', fig, self.global_step)
+            wandb.log({f'train/{step:06d}.jpg': wandb.Image(path)}, step=self.global_step)
         elif 'test' in name:
             self.logger.add_figure(
                 f'test/{step:06d}.jpg', fig, self.global_step)
+            wandb.log({f'test/{step:06d}.jpg': wandb.Image(path)}, step=self.global_step)
 
     def checkpoint_me(self, loss_dict, is_best):
         save_name = 'best_model.pt' if is_best else f'iteration_{self.global_step}.pt'
@@ -512,6 +520,7 @@ class Trainer:
             'state_dict': self.net.state_dict(),
             'opts': vars(self.opts),
             'state_dict_ema': self.net_ema.state_dict(),
+            'current_epoch': self.global_step
         }
         # save the latent avg in state_dict for inference if truncation of w was used during training
         if self.opts.start_from_latent_avg:
