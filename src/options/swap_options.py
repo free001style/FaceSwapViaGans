@@ -41,6 +41,9 @@ class SwapFacePipelineOptions:
         self.parser.add_argument('--verbose', default=False, type=bool, help='Whether to show the intermediate results')
         self.parser.add_argument('--output_dir', type=str, default="./test",
                                  help='Path to the output directory')
+        self.parser.add_argument('--valid', type=bool, default=False, help='Calculate metrics for my list of photos')
+        self.parser.add_argument('--celeba_dataset_root', default='../datasets/CelebAMask-HQ', type=str,
+                                 help='CelebAMask-HQ dataset root path')
 
     def parse(self):
         opts = self.parser.parse_args()

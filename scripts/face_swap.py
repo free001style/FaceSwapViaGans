@@ -196,8 +196,8 @@ def faceSwapping_pipeline(source, target, opts, name, save_dir, target_mask=None
     else:
         S = Image.open(source).convert("RGB").resize((1024, 1024))
         T = Image.open(target).convert("RGB").resize((1024, 1024))
-        S.save(os.path.join(_dirs[2], name))
-        T.save(os.path.join(_dirs[3], name))
+        S.save(os.path.join(_dirs[1], f'{name}.jpg'))
+        T.save(os.path.join(_dirs[2], f'{name}.jpg'))
         crops = [S, T]
 
     S_256, T_256 = [resize(np.array(im) / 255.0, (256, 256)) for im in [S, T]]  # 256,[0,1] range
@@ -344,14 +344,7 @@ def faceSwapping_pipeline(source, target, opts, name, save_dir, target_mask=None
         pasted_image = swapped_and_pasted
 
     pasted_image = pasted_image.convert('RGB')
-    pasted_image.save(os.path.join(_dirs[0], name))
-    s = transforms.ToTensor()(S)
-    t = transforms.ToTensor()(T)
-    swap = transforms.ToTensor()(pasted_image)
-    sample = torch.cat([s, t], dim=2)
-    sample = torch.cat([sample, swap], dim=2)
-    sample = transforms.ToPILImage()(sample)
-    sample.save(os.path.join(_dirs[1], name))
+    pasted_image.save(os.path.join(_dirs[0], f'{name}.jpg'))
 
 
 if __name__ == "__main__":
@@ -407,19 +400,27 @@ if __name__ == "__main__":
         target_mask_seg12 = None
 
     _dirs = []
-    for path_ in ['swapped', 'fuse', 'source', 'target']:
+    for path_ in ['swap', 'source', 'target']:
         _dirs.append(os.path.join(opts.output_dir, path_))
 
     for x in _dirs:
-        try:
-            os.makedirs(x)
-        except:
-            pass
+        os.makedirs(x, exist_ok=True)
 
-    # NOTICE !!!
-    # Please consider the `need_crop` parameter accordingly for your test case, default with well aligned faces
-    for i, (source, target) in enumerate(zip(os.listdir(opts.source), os.listdir(opts.target))):
-        source_path = os.path.join(opts.source, source)
-        target_path = os.path.join(opts.target, target)
-        faceSwapping_pipeline(source_path, target_path, opts, source, save_dir=opts.output_dir,
+    if opts.valid:
+        source_dir = sorted(
+            [os.path.join(opts.celeba_dataset_root, "CelebA-HQ-img", "%d.jpg" % idx) for idx in range(28000, 29000)])
+        target_dir = sorted(
+            [os.path.join(opts.celeba_dataset_root, "CelebA-HQ-img", "%d.jpg" % idx) for idx in range(29000, 30000)])
+    else:
+        source_dir = os.listdir(opts.source)
+        target_dir = os.listdir(opts.target)
+
+    for i, (source, target) in enumerate(zip(source_dir, target_dir)):
+        if opts.valid:
+            source_path = source
+            target_path = target
+        else:
+            source_path = os.path.join(source_dir, source)
+            target_path = os.path.join(target_dir, target)
+        faceSwapping_pipeline(source_path, target_path, opts, i, save_dir=opts.output_dir,
                               target_mask=target_mask_seg12, need_crop=False, verbose=opts.verbose)

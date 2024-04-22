@@ -148,6 +148,19 @@ def calculate_fid(source_features, swap_features):
             np.trace(cov2) - 2 * tr_covmean)
 
 
+def get_concat(source, target, swap, args, name):
+    source = Image.open(source).convert('RGB')
+    target = Image.open(target).convert('RGB')
+    swap = Image.open(swap).convert('RGB')
+    source = transforms.ToTensor()(source)
+    target = transforms.ToTensor()(target)
+    swap = transforms.ToTensor()(swap)
+    sample = torch.cat([source, target], dim=2)
+    sample = torch.cat([sample, swap], dim=2)
+    sample = transforms.ToPILImage()(sample)
+    sample.save(os.path.join(args.concat_dir, name))
+
+
 def main(args):
     model_id_cos = Backbone().eval().requires_grad_(False).to(device)
     model_id_cos.load_state_dict(torch.load('pretrained_ckpts/auxiliray/model_ir_se50.pth', map_location=device))
@@ -176,6 +189,10 @@ def main(args):
         s_feat, sw_feat = get_features(model_features, source, swap)
         source_features.append(s_feat)
         swap_features.append(sw_feat)
+        if int(source_path[:-4]) < 40:
+            os.makedirs(args.concat_dir, exist_ok=True)
+            get_concat(source, target, swap, args, source_path)
+
     pose /= (i + 1)
     cos_id /= (i + 1)
     exp /= exp_count
@@ -196,5 +213,6 @@ if __name__ == '__main__':
     args.add_argument('--swap', type=str)
     args.add_argument('--output', type=str)
     args.add_argument('--model', type=str)
+    args.add_argument('--concat_dir', type=str)
     args = args.parse_args()
     main(args)
