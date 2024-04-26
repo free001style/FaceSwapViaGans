@@ -5,7 +5,7 @@
 **/*.pkl
 **/*.dat
 **/*.pth.tar
-
+**/*.ipynb_checkpoints
 **/__pycache__/
 .idea
 .vscode/
