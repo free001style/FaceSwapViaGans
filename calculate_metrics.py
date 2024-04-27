@@ -102,7 +102,7 @@ class Expression(EvalMetric):
     def __init__(self):
         super().__init__()
         self.model = FAN(4, "False", "False", 98)
-        self.setup_model('./pretrained_models/WFLW_4HG.pth')
+        self.setup_model('./pretrained_ckpts/WFLW_4HG.pth')
         self._mse = torch.nn.MSELoss(reduction='none')
 
     def setup_model(self, path_to_model: str):

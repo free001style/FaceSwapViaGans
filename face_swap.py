@@ -181,6 +181,8 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
     if opts.save_concat:
         dirs['fuse'] = os.path.join(opts.output_dir, 'fuse')
     if opts.verbose:
+        dirs['T_crop'] = os.path.join(opts.output_dir, 'T_crop')
+        dirs['S_crop'] = os.path.join(opts.output_dir, 'S_crop')
         dirs['T_mask'] = os.path.join(opts.output_dir, 'T_mask')
         dirs['T_mask_vis'] = os.path.join(opts.output_dir, 'T_mask_vis')
         dirs['Drive'] = os.path.join(opts.output_dir, 'Drive')
@@ -209,10 +211,13 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
         crops = [crop.convert("RGB") for crop in crops]
         T = crops[0]
         S = Image.open(source).convert("RGB").resize((1024, 1024))
+        T.save(os.path.join(dirs['T_crop'], f'{name}.jpg'))
     elif need_crop:
         crops, orig_images, quads, inv_transforms = crop_and_align_face(source_and_target_files)
         crops = [crop.convert("RGB") for crop in crops]
         S, T = crops
+        T.save(os.path.join(dirs['T_crop'], f'{name}.jpg'))
+        S.save(os.path.join(dirs['S_crop'], f'{name}.jpg'))
     else:
         S = Image.open(source).convert("RGB").resize((1024, 1024))
         T = Image.open(target).convert("RGB").resize((1024, 1024))
@@ -353,7 +358,8 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
     #
     # Gaussian blending with mask
     outer_dilation = 5
-    mask_bg = logical_or_reduce(*[swapped_msk == clz for clz in [0, 11, 4, 10]])
+    # for more consistent swap make mask using bg(0), hair(4), ears(7), neck(8), glass(10) and ear rings(11)
+    mask_bg = logical_or_reduce(*[swapped_msk == clz for clz in [0, 4, 7, 8, 10, 11]])
     is_foreground = torch.logical_not(mask_bg)
     hole_index = hole_map[None][None] == 255
     is_foreground[hole_index[None]] = True
@@ -422,7 +428,7 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
 
 if __name__ == "__main__":
     opts = SwapFacePipelineOptions().parse()
-    # ================= Pre-trained models initilization =========================
+    # ================= Pre-trained models initialization =========================
     # face_vid2vid
     face_vid2vid_cfg = "./pretrained_ckpts/facevid2vid/vox-256.yaml"
     face_vid2vid_ckpt = "./pretrained_ckpts/facevid2vid/00000189-checkpoint.pth.tar"
@@ -487,4 +493,5 @@ if __name__ == "__main__":
         else:
             source_path = os.path.join(source_dir, source)
             target_path = os.path.join(target_dir, target)
-        faceSwapping_pipeline(opts, source_path, target_path, str(i), target_mask=target_mask_seg12)
+        faceSwapping_pipeline(opts, source_path, target_path, str(i), target_mask=target_mask_seg12,
+                              need_crop=opts.need_crop)

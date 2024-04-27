@@ -26,7 +26,7 @@ class SwapFacePipelineOptions:
                                  help='Whether to add average latent vector to generate codes from encoder.')
         self.parser.add_argument('--output_size', default=1024, type=int, help='Output size of generator')
         self.parser.add_argument('--n_styles', default=18, type=int, help='StyleGAN layers')
-        self.parser.add_argument('--checkpoint_path', default='./pretrained_ckpts/e4s/iteration_205000.pt', type=str,
+        self.parser.add_argument('--checkpoint_path', default='./pretrained_ckpts/e4s/iteration_100000.pt', type=str,
                                  help='Path to E4S pre-trained model checkpoint')
         self.parser.add_argument('--faceParser_name', default='segnext', type=str,
                                  help='face parser name, [ default | segnext] is currently supported.')
@@ -36,11 +36,14 @@ class SwapFacePipelineOptions:
                                  help='Path to the source images')
         self.parser.add_argument('--target', type=str, default="input/target",
                                  help='Path to the target images')
+        self.parser.add_argument('--output_dir', type=str, default="./output",
+                                 help='Path to the output directory')
+        self.parser.add_argument('--need_crop', default=True,
+                                 help='Whether to do cropping and aligning source and target photos')
         self.parser.add_argument('--target_mask', type=str, default="", help='Path to the target mask')
 
         self.parser.add_argument('--verbose', default=False, type=bool, help='Whether to show the intermediate results')
-        self.parser.add_argument('--output_dir', type=str, default="./test",
-                                 help='Path to the output directory')
+
         self.parser.add_argument('--save_only_swap', type=str, default=True,
                                  help='Whether to save only generated photo without source and target')
         self.parser.add_argument('--save_concat', type=str, default=False,

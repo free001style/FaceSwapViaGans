@@ -84,9 +84,9 @@ class TrainOptions:
         self.parser.add_argument('--n_styles', default=18, type=int, help='StyleGAN layers number')
 
         # auxiliary models
-        self.parser.add_argument('--ir_se50_path', default='./pretrained_ckpts/auxiliray/model_ir_se50.pth', type=str,
+        self.parser.add_argument('--ir_se50_path', default='./pretrained_ckpts/auxiliary/model_ir_se50.pth', type=str,
                                  help='Path to ir_se50 model weights')
-        self.parser.add_argument('--face_parsing_model_path', default='./pretrained_ckpts/auxiliray/model.pth',
+        self.parser.add_argument('--face_parsing_model_path', default='./pretrained_ckpts/auxiliary/model.pth',
                                  type=str, help='Path to face parsing model weights')
         self.parser.add_argument('--checkpoint_path', default=None, type=str, help='Path to model checkpoint')
 
