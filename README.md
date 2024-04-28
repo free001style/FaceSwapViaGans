@@ -6,7 +6,7 @@ This is my 3rd year course work in the HSE University.
 Weights can be downloaded using `download_weights.py` or [here](https://drive.google.com/drive/folders/1C5qIjiIsaswRGvXEB5HaeJhYVXPJ0Ozd).
 In case using link, make sure that `pretrained_ckpts` directory looks like below.
 
-    ```
+```
     pretrained_ckpts/
     ├── auxiliray (need for training)
     │   ├── model_ir_se50.pth
@@ -32,7 +32,7 @@ In case using link, make sure that `pretrained_ckpts` directory looks like below
     ├── hopenet_robust_alpha1.pkl (need for metric calculation)
     ├── WFLW_4HG.pth (need for metric calculation)
     └── arcface.pt (need for metric calculation)
-    ```
+  ```
 ## Inference
    ```sh
    python face_swap.py --source=path_to_photos/source --target=path_to_photos/target
