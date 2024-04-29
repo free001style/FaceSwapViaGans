@@ -24,16 +24,14 @@ def swap_head_mask_revisit_considerGlass(source, target):
     target_regions = [np.equal(target, i) for i in range(12)]
     source_regions = [np.equal(source, i) for i in range(12)]
 
-    # the background, neck, ear and earrings regions of target
     res[target_regions[0]] = 99  # a place-holder magic number
     res[target_regions[8]] = 8  # neck
     res[target_regions[6]] = 6  # skin
     res[target_regions[7]] = 7  # ear
     res[target_regions[9]] = 9  # teeth
     res[target_regions[1]] = 1  # lips
-    res[target_regions[3]] = 3  # eye
 
-    # the inner-face of source
+    res[np.logical_and(source_regions[3], np.not_equal(res, 99))] = 3  # eyes
     res[np.logical_and(source_regions[2], np.not_equal(res, 99))] = 2  # eyebrows
     res[np.logical_and(source_regions[5], np.not_equal(res, 99))] = 5  # nose
 

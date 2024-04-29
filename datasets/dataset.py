@@ -106,7 +106,7 @@ def __ffhq_masks_to_faceParser_mask_detailed(mask):
 
 
 def __ffhq_masks_to_faceParser_mask(mask):
-    """Convert the esitimated semantic image by face-parsing.PyTorch to reduced categories (9-class).
+    """Convert the estimated semantic image by face-parsing.PyTorch to reduced categories (9-class).
 
     Args:
         mask (PIL image): with shape [H,W]
@@ -155,7 +155,7 @@ def __celebAHQ_masks_to_faceParser_mask_detailed(celebA_mask):
     Args:
         mask (PIL image): with shape [H,W]
     Return:
-        aggrigated mask, with same shape [H,W] but the number of segmentation classes is less
+        aggregated mask, with same shape [H,W] but the number of segmentation classes is less
     """
     # 19 attributes in total, skin-1,nose-2,...cloth-18, background-0
     celelbAHQ_label_list = ['skin', 'nose', 'eye_g', 'l_eye', 'r_eye',
