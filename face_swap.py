@@ -199,8 +199,8 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
         dirs['recolor_img'] = os.path.join(opts.output_dir, 'recolor_img')
         dirs['enhance_img'] = os.path.join(opts.output_dir, 'enhance_img')
 
-    for x in dirs:
-        os.makedirs(x, exist_ok=True)
+    for key, dir_ in dirs.items():
+        os.makedirs(dir_, exist_ok=True)
 
     source_and_target_files = [source, target]
     source_and_target_files = [(os.path.basename(f).split('.')[0], f) for f in source_and_target_files]
@@ -412,7 +412,7 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
 
     pasted_image = pasted_image.convert('RGB')
     pasted_image.save(os.path.join(dirs['swap'], f'{name}.jpg'))
-    if opts.save_concat:
+    if opts.save_concat:  # TODO добавить сохранения конкатов для фоток с разными размерами
         source = Image.open(os.path.join(dirs['source'], f'{name}.jpg'))
         target = Image.open(os.path.join(dirs['target'], f'{name}.jpg'))
 
@@ -491,7 +491,7 @@ if __name__ == "__main__":
             source_path = source
             target_path = target
         else:
-            source_path = os.path.join(source_dir, source)
-            target_path = os.path.join(target_dir, target)
+            source_path = os.path.join(opts.source, source)
+            target_path = os.path.join(opts.target, target)
         faceSwapping_pipeline(opts, source_path, target_path, str(i), target_mask=target_mask_seg12,
                               need_crop=opts.need_crop)
