@@ -16,6 +16,7 @@ def download():
     gdown.download(id="1AEFt0jgfziK3bkLQjSLIcP28GSQS59Ki")  # download hopenet_robust_alpha1.pkl
     gdown.download(id="1XQvlw3JqfeKCv7Or9dKSCzfRYen9ADcb")  # download shape_predictor_68_face_landmarks.dat
     gdown.download(id="1uivmaQEETh0pEJvH21CYv7e6u9RJW-PV")  # download WFLW_4HG.pth
+    gdown.download(id="1uXUsxEDdziuOL_hEsi4EBzIre4h91pel")  # download vox.pt
 
     os.rename('model_ir_se50.pth', 'pretrained_ckpts/auxiliary/model_ir_se50.pth')
     os.makedirs('pretrained_ckpts/e4s', exist_ok=True)
@@ -33,6 +34,7 @@ def download():
     os.rename('hopenet_robust_alpha1.pkl', 'pretrained_ckpts/hopenet_robust_alpha1.pkl')
     os.rename('shape_predictor_68_face_landmarks.dat', 'pretrained_ckpts/shape_predictor_68_face_landmarks.dat')
     os.rename('WFLW_4HG.pth', 'pretrained_ckpts/WFLW_4HG.pth')
+    os.rename('vox.pt', 'pretrained_ckpts/vox.pt')
 
 
 if __name__ == "__main__":

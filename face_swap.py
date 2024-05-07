@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 from torch.nn import functional as F
 from skimage.transform import resize
 
-from pretrained.face_vid2vid.driven_demo import init_facevid2vid_pretrained_model, drive_source_demo
+from pretrained.reenactment.generator import Generator
 from pretrained.gpen.gpen_demo import init_gpen_pretrained_model, GPEN_demo
 from pretrained.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, \
     vis_parsing_maps
@@ -233,9 +233,11 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
         Image.fromarray(T_mask_vis).save(os.path.join(dirs['T_mask_vis'], f"{name}.png"))
 
     # (2) faceVid2Vid  input & output [0,1] range with RGB
-    predictions = drive_source_demo(S_256, [T_256], generator, kp_detector, he_estimator, estimate_jacobian)
-    predictions = [(pred * 255).astype(np.uint8) for pred in predictions]
-    # del generator, kp_detector, he_estimator
+    S_256_tensor = torch.permute(torch.from_numpy(S_256), (2, 0, 1)).unsqueeze(0).float().cuda()
+    T_256_tensor = torch.permute(torch.from_numpy(T_256), (2, 0, 1)).unsqueeze(0).float().cuda()
+    predictions = reenactment(S_256_tensor * 2 - 1, T_256_tensor * 2 - 1, None).squeeze().clamp(-1, 1)
+    predictions = (predictions + 1) / 2 * 255.0
+    predictions = torch.permute(predictions, (1, 2, 0)).cpu().numpy().astype(np.uint8)
 
     # (2) GPEN input & output [0,255] range with BGR
     drives = [GPEN_demo(pred[:, :, ::-1], GPEN_model, aligned=False) for pred in predictions]
@@ -429,11 +431,10 @@ def faceSwapping_pipeline(opts, source, target, name, target_mask=None, need_cro
 if __name__ == "__main__":
     opts = SwapFacePipelineOptions().parse()
     # ================= Pre-trained models initialization =========================
-    # face_vid2vid
-    face_vid2vid_cfg = "./pretrained_ckpts/facevid2vid/vox-256.yaml"
-    face_vid2vid_ckpt = "./pretrained_ckpts/facevid2vid/00000189-checkpoint.pth.tar"
-    generator, kp_detector, he_estimator, estimate_jacobian = init_facevid2vid_pretrained_model(face_vid2vid_cfg,
-                                                                                                face_vid2vid_ckpt)
+    reenactment = Generator(256, 512, 20, 1).cuda()
+    reenactment.load_state_dict(
+        torch.load('./pretrained_ckpts/vox.pt', map_location=lambda storage, loc: storage)['gen'])
+    reenactment.eval()
 
     # GPEN
     gpen_model_params = {
