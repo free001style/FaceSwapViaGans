@@ -6,7 +6,6 @@ def download():
     gdown.download(id="1bBmt21B5d-X29cGTqIdjkzcy3zh3wWTS")  # download model_ir_se50.pth
     gdown.download(id="1W-BxYgNOAgZvCuPTsJczAzglQwuU6Lo1")  # download iteration_100000.pt
     gdown.download(id="11cP8ceL2t3A2XoYqIBPIY5fIT94EosE5")  # download best_mIoU_iter_150000.pth
-    gdown.download(id="1a48fa1UqsPTGe-FAVssVs4ILSSsxJWge")  # download 00000189-checkpoint.pth.tar
     gdown.download(id="1tnWOrdwAhvtMxbDYSCnUIAi-j5H4u3HV")  # download RetinaFace-R50.pth
     gdown.download(id="1VOOVi5ZOjU5how64j6QW3ENmhDgg7Yu3")  # download realesrnet_x4.pth
     gdown.download(id="1dRBVwYwtWpH0bYsFcvnCewve2NjTqiJ7")  # download ParseNet-latest.pth
@@ -22,7 +21,6 @@ def download():
     os.makedirs('pretrained_ckpts/e4s', exist_ok=True)
     os.rename('iteration_100000.pt', 'pretrained_ckpts/e4s/iteration_100000.pt')
     os.rename('best_mIoU_iter_150000.pth', 'pretrained_ckpts/face_parsing/best_mIoU_iter_150000.pth')
-    os.rename('00000189-checkpoint.pth.tar', 'pretrained_ckpts/facevid2vid/00000189-checkpoint.pth.tar')
     os.makedirs('pretrained_ckpts/gpen/weights', exist_ok=True)
     os.rename('RetinaFace-R50.pth', 'pretrained_ckpts/gpen/weights/RetinaFace-R50.pth')
     os.rename('realesrnet_x4.pth', 'pretrained_ckpts/gpen/weights/realesrnet_x4.pth')

@@ -49,7 +49,7 @@ class SwapFacePipelineOptions:
         self.parser.add_argument('--save_concat', type=str, default=False,
                                  help='Whether to save fused images i.e. source | target | swap')
         self.parser.add_argument('--evaluate', type=bool, default=False, help='Generate photos for evaluation')
-        self.parser.add_argument('--celebA_dataset_root', default='../datasets/CelebAMask-HQ', type=str,
+        self.parser.add_argument('--celeba_dataset_root', default='../datasets/CelebAMask-HQ', type=str,
                                  help='CelebAMask-HQ dataset root path')
 
     def parse(self):
