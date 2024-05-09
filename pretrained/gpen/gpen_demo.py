@@ -14,20 +14,21 @@ import torch
 # import __init_paths
 from pretrained.gpen.face_enhancement import FaceEnhancement
 
+
 # =============================================
 def init_gpen_pretrained_model(model_params):
     model = FaceEnhancement(base_dir=model_params["base_dir"],
-                            in_size=model_params["in_size"], 
-                            model=model_params["model"], 
-                            use_sr=model_params["use_sr"], 
+                            in_size=model_params["in_size"],
+                            model=model_params["model"],
+                            use_sr=model_params["use_sr"],
                             sr_model=model_params["sr_model"],
                             sr_scale=model_params["sr_scale"],
                             channel_multiplier=model_params["channel_multiplier"],
-                            narrow=model_params["narrow"], 
+                            narrow=model_params["narrow"],
                             key=None, device='cuda')
-    
+
     print("Load GPEN pre-traiend model success!")
-    
+
     return model
 
 
@@ -45,11 +46,11 @@ def GPEN_demo(img, model, aligned=False):
     with torch.no_grad():
         # img_out是整张图片的输入，orig_faces和enhanced_faces分别是增强前后的脸部区域
         img_out, orig_faces, enhanced_faces = model.process(img, aligned=aligned)
-        
-    return img_out    
-            
-    
-if __name__=='__main__':
+
+    return img_out
+
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='GPEN-BFR-512', help='GPEN model')
     parser.add_argument('--task', type=str, default='FaceEnhancement', help='task of GPEN model')
@@ -67,27 +68,31 @@ if __name__=='__main__':
     parser.add_argument('--indir', type=str, default='examples/imgs', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-BFR', help='output folder')
     args = parser.parse_args()
-    
+
     os.makedirs(args.outdir, exist_ok=True)
-    processer = FaceEnhancement(in_size=args.in_size, model=args.model, use_sr=args.use_sr, sr_model=args.sr_model, sr_scale=args.sr_scale, channel_multiplier=args.channel_multiplier, narrow=args.narrow, key=args.key, device='cuda' if args.use_cuda else 'cpu')
-    
+    processer = FaceEnhancement(in_size=args.in_size, model=args.model, use_sr=args.use_sr, sr_model=args.sr_model,
+                                sr_scale=args.sr_scale, channel_multiplier=args.channel_multiplier, narrow=args.narrow,
+                                key=args.key, device='cuda' if args.use_cuda else 'cpu')
+
     files = sorted(glob.glob(os.path.join(args.indir, '*.*g')))
     for n, file in enumerate(files[:]):
         filename = os.path.basename(file)
-        
-        img = cv2.imread(file, cv2.IMREAD_COLOR) # BGR
+
+        img = cv2.imread(file, cv2.IMREAD_COLOR)  # BGR
         if not isinstance(img, np.ndarray): print(filename, 'error'); continue
-        #img = cv2.resize(img, (0,0), fx=2, fy=2) # optional
+        # img = cv2.resize(img, (0,0), fx=2, fy=2) # optional
 
         img_out, orig_faces, enhanced_faces = processer.process(img, aligned=args.aligned)
-        
+
         img = cv2.resize(img, img_out.shape[:2][::-1])
-        cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1])+'_COMP.jpg'), np.hstack((img, img_out)))
-        cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1])+'_GPEN.jpg'), img_out)
-        
+        cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1]) + '_COMP.jpg'),
+                    np.hstack((img, img_out)))
+        cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1]) + '_GPEN.jpg'), img_out)
+
         if args.save_face:
             for m, (ef, of) in enumerate(zip(enhanced_faces, orig_faces)):
                 of = cv2.resize(of, ef.shape[:2])
-                cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1])+'_face%02d'%m+'.jpg'), np.hstack((of, ef)))
-        
-        if n%10==0: print(n, filename)
+                cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1]) + '_face%02d' % m + '.jpg'),
+                            np.hstack((of, ef)))
+
+        if n % 10 == 0: print(n, filename)

@@ -16,11 +16,7 @@ In case using link, make sure that `pretrained_ckpts` directory looks like below
     ├── face_parsing
     │   ├── segnext.large.512x512.celebamaskhq.160k.py
     │   └── best_mIoU_iter_150000.pth
-    ├── facevid2vid
-    │   ├── 00000189-checkpoint.pth.tar
-    │   └── vox-256.yaml
     ├── gpen
-    │   ├── fetch_gepn_models.sh
     │   └── weights
     │       ├── GPEN-BFR-512.pth
     │       ├── ParseNet-latest.pth
@@ -29,6 +25,7 @@ In case using link, make sure that `pretrained_ckpts` directory looks like below
     ├── stylegan2 (need for training)
     │   └── stylegan2-ffhq-config-f.pt
     ├── shape_predictor_68_face_landmarks.dat
+    ├── vox.pt
     ├── hopenet_robust_alpha1.pkl (need for metric calculation)
     ├── WFLW_4HG.pth (need for metric calculation)
     └── arcface.pt (need for metric calculation)

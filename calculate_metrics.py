@@ -20,13 +20,6 @@ warnings.filterwarnings("ignore")
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
-def get_concat(args, source, target, swap, name):
-    sample = torch.cat([source, target], dim=2)
-    sample = torch.cat([sample, swap], dim=2)
-    sample = transforms.ToPILImage()(sample)
-    sample.save(os.path.join(args.concat_dir, name))
-
-
 class EvalMetric(object):
     def __init__(self):
         self._metric = 0
@@ -47,14 +40,14 @@ class Identity(EvalMetric):
     def __init__(self):
         super().__init__()
         self.model = iresnet100(fp16=False)
-        self.model.load_state_dict(torch.load('./pretrained_ckpts/arcface.pt'), map_location=device)
+        self.model.load_state_dict(torch.load('pretrained_ckpts/arcface.pt', map_location=device))
         self.model.to(device).eval()
 
     def update(self, source, swap):
-        source = self.model(torch.nn.functional.interpolate(source, [112, 112], mode='bilinear',
-                                                            align_corners=False))
-        swap = self.model(torch.nn.functional.interpolate(swap, [112, 112], mode='bilinear',
-                                                          align_corners=False))
+        source = self.model(
+            torch.nn.functional.interpolate(source.unsqueeze(0), [112, 112], mode='bilinear', align_corners=False))
+        swap = self.model(
+            torch.nn.functional.interpolate(swap.unsqueeze(0), [112, 112], mode='bilinear', align_corners=False))
         self._metric += torch.cosine_similarity(source, swap, dim=1)
         self._len += 1
 
@@ -63,14 +56,20 @@ class PoseMetric(EvalMetric):
     def __init__(self):
         super().__init__()
         self.model = hopenet.Hopenet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], 66)
-        self.model.load_state_dict(torch.load('./pretrained_ckpts/hopenet_robust_alpha1.pkl', map_location=device))
-        self.model.eval()
+        self.model.load_state_dict(torch.load('pretrained_ckpts/hopenet_robust_alpha1.pkl', map_location=device))
+        self.model.to(device).eval()
 
     def get_face_points(self, img):
-        idx_tensor = [idx for idx in range(66)]
-        idx_tensor = torch.FloatTensor(idx_tensor)
+        transformations = transforms.Compose([transforms.Resize(224),
+                                              transforms.CenterCrop(224),
+                                              transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                   std=[0.229, 0.224, 0.225])])
 
-        img = img.unsqueeze(0)
+        idx_tensor = [idx for idx in range(66)]
+        idx_tensor = torch.FloatTensor(idx_tensor).to(device)
+
+        img = transformations(img)
+
         images = Variable(img)
 
         yaw, pitch, roll = self.model(images)
@@ -90,10 +89,8 @@ class PoseMetric(EvalMetric):
         return torch.tensor([pitch.item(), yaw.item(), roll.item()])
 
     def update(self, target, swap):
-        target = self.get_face_points(
-            torch.nn.functional.interpolate(target, [224, 224], mode='bilinear', align_corners=False))
-        swap = self.get_face_points(
-            torch.nn.functional.interpolate(swap, [224, 224], mode='bilinear', align_corners=False))
+        target = self.get_face_points(target.unsqueeze(0))
+        swap = self.get_face_points(swap.unsqueeze(0))
         self._metric += (target - swap).pow(2).sum().pow(0.5)
         self._len += 1
 
@@ -102,7 +99,7 @@ class Expression(EvalMetric):
     def __init__(self):
         super().__init__()
         self.model = FAN(4, "False", "False", 98)
-        self.setup_model('./pretrained_ckpts/WFLW_4HG.pth')
+        self.setup_model('pretrained_ckpts/WFLW_4HG.pth')
         self._mse = torch.nn.MSELoss(reduction='none')
 
     def setup_model(self, path_to_model: str):
@@ -118,14 +115,14 @@ class Expression(EvalMetric):
             self.model.load_state_dict(model_weights)
         self.model.eval().to(device)
 
-    def update(self, target, prediction):
-        prediction = torch.nn.functional.interpolate(prediction, [256, 256], mode='bilinear', align_corners=False)
-        target = torch.nn.functional.interpolate(target, [256, 256], mode='bilinear', align_corners=False)
+    def update(self, target, swap):
+        swap = torch.nn.functional.interpolate(swap.unsqueeze(0), [256, 256], mode='bilinear', align_corners=False)
+        target = torch.nn.functional.interpolate(target.unsqueeze(0), [256, 256], mode='bilinear', align_corners=False)
 
-        prediction_lmk, _ = detect_landmarks(prediction, self.model, normalize=True)
+        swap_lmk, _ = detect_landmarks(swap, self.model, normalize=True)
         target_lmk, _ = detect_landmarks(target, self.model, normalize=True)
 
-        self._metric += torch.norm(prediction_lmk - target_lmk, 2)
+        self._metric += torch.norm(swap_lmk - target_lmk, 2)
         self._len += 1
 
 
@@ -187,6 +184,7 @@ def main(args):
     fid = Fid()
     for i, (source_path, target_path, swap_path) in enumerate(
             zip(os.listdir(args.source), os.listdir(args.target), os.listdir(args.swap))):
+        print(i)
         source = Image.open(os.path.join(args.source, source_path)).convert('RGB')
         target = Image.open(os.path.join(args.target, target_path)).convert('RGB')
         swap = Image.open(os.path.join(args.swap, swap_path)).convert('RGB')
@@ -197,14 +195,12 @@ def main(args):
         pose.update(target, swap)
         expression.update(target, swap)
         fid.get_features(source, swap)
-        if int(source_path[:-4]) < 40:
-            os.makedirs(args.concat_dir, exist_ok=True)
-            get_concat(args, source, target, swap, source_path)
+    fid.update()
     with open(args.output, "a") as file:
-        file.write(f'{args.model}: cos_id -- {np.round(identity.get().item(), 2)}' + "\n")
-        file.write(f'{args.model}: pose -- {np.round(pose.get().item(), 2)}' + "\n")
-        file.write(f'{args.model}: expression -- {np.round(expression.get().item(), 2)}' + "\n")
-        file.write(f'{args.model}: fid -- {np.round(fid.get(), 2)}' + "\n")
+        file.write(f'cos_id -- {np.round(identity.get().item(), 2)}' + "\n")
+        file.write(f'pose -- {np.round(pose.get().item(), 2)}' + "\n")
+        file.write(f'expression -- {np.round(expression.get().item(), 2)}' + "\n")
+        file.write(f'fid -- {np.round(fid.get(), 2)}' + "\n")
 
 
 if __name__ == '__main__':
@@ -212,8 +208,6 @@ if __name__ == '__main__':
     args.add_argument('--source', type=str)
     args.add_argument('--target', type=str)
     args.add_argument('--swap', type=str)
-    args.add_argument('--output', type=str)
-    args.add_argument('--model', type=str)
-    args.add_argument('--concat_dir', type=str)
+    args.add_argument('--output', type=str, default='output_metrics.txt')
     args = args.parse_args()
     main(args)
