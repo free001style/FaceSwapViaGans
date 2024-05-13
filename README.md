@@ -2,6 +2,10 @@
 
 This is my 3rd year course work in the HSE University.
 
+<div align="center">
+    <img src='assets/main.jpg'/>
+</div>
+
 ## Start
 Weights can be downloaded using `download_weights.py` or [here](https://drive.google.com/drive/folders/1C5qIjiIsaswRGvXEB5HaeJhYVXPJ0Ozd).
 In case using link, make sure that `pretrained_ckpts` directory looks like below.
@@ -46,3 +50,7 @@ python  -m torch.distributed.launch \
         train.py --exp_dir='name of your experiment'
 ```
 For more information please check `options/train_options.py` or `train.py -h`.
+
+## Disclaimer
+
+This repository is not a new method but it is a huge improvements of [E4S(CVPR2023)](https://github.com/e4s2022/e4s). Thanks to the authors for sharing their code.
