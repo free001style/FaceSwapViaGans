@@ -51,6 +51,9 @@ python  -m torch.distributed.launch \
 ```
 For more information please check `options/train_options.py` or `train.py -h`.
 
+All experiments losses and configs can be founded on [wandb](https://wandb.ai/free001style/course_project?nw=nwuserfree001style).
+
+
 ## Disclaimer
 
 This repository is not a new method but it is a huge improvements of [E4S(CVPR2023)](https://github.com/e4s2022/e4s). Thanks to the authors for sharing their code.
