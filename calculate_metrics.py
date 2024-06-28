@@ -126,62 +126,12 @@ class Expression(EvalMetric):
         self._len += 1
 
 
-class Fid(EvalMetric):
-    def __init__(self):
-        super().__init__()
-        self.model = torchvision.models.inception_v3(pretrained=True).to(device)
-        self.model.fc = torch.nn.Identity()
-        self.model.eval()
-        self.s_feat, self.sw_feat = [], []
-
-    def get_features(self, source, swap):
-        img = torch.stack((source, swap))
-
-        img = img.to(device)
-        features = self.model(img).detach().cpu()
-        source_features = features[0, ...].view(1, -1)
-        swap_features = features[1, ...].view(1, -1)
-        self.s_feat.append(source_features)
-        self.sw_feat.append(swap_features)
-
-    def update(self):
-        source_features = torch.stack(self.s_feat).squeeze().numpy()
-        swap_features = torch.stack(self.sw_feat).squeeze().numpy()
-        eps = 1e-6
-        mu1 = np.mean(source_features, axis=0)
-        mu2 = np.mean(swap_features, axis=0)
-        cov1 = np.cov(source_features, rowvar=False)
-        cov2 = np.cov(swap_features, rowvar=False)
-        assert mu1.shape == mu2.shape, \
-            'Training and test mean vectors have different lengths'
-        assert cov1.shape == cov2.shape, \
-            'Training and test covariances have different dimensions'
-        diff = mu1 - mu2
-        # Product might be almost singular
-        covmean, _ = sqrtm(cov1.dot(cov2), disp=False)
-        if not np.isfinite(covmean).all():
-            offset = np.eye(cov1.shape[0]) * eps
-            covmean = sqrtm((cov1 + offset).dot(cov2 + offset))
-
-        # Numerical error might give slight imaginary component
-        if np.iscomplexobj(covmean):
-            if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
-                m = np.max(np.abs(covmean.imag))
-                raise ValueError('Imaginary component {}'.format(m))
-            covmean = covmean.real
-
-        tr_covmean = np.trace(covmean)
-
-        self._metric += diff.dot(diff) + np.trace(cov1) + np.trace(cov2) - 2 * tr_covmean
-        self._len += 1
-
-
 @torch.no_grad()
 def main(args):
     identity = Identity()
     pose = PoseMetric()
     expression = Expression()
-    fid = Fid()
+    fid = os.popen(f"export PYTHONPATH='.' && python3 -m pytorch_fid {args.target} {args.swap}").read()[6:-2]
     for i, (source_path, target_path, swap_path) in enumerate(
             zip(os.listdir(args.source), os.listdir(args.target), os.listdir(args.swap))):
         print(i)
@@ -194,13 +144,11 @@ def main(args):
         identity.update(source, swap)
         pose.update(target, swap)
         expression.update(target, swap)
-        fid.get_features(source, swap)
-    fid.update()
     with open(args.output, "a") as file:
         file.write(f'cos_id -- {np.round(identity.get().item(), 2)}' + "\n")
         file.write(f'pose -- {np.round(pose.get().item(), 2)}' + "\n")
         file.write(f'expression -- {np.round(expression.get().item(), 2)}' + "\n")
-        file.write(f'fid -- {np.round(fid.get(), 2)}' + "\n")
+        file.write(f'fid -- {np.round(float(fid), 2)}' + "\n")
 
 
 if __name__ == '__main__':
